@@ -8,7 +8,6 @@ from accounts.models import User
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    # products = models.ForeignKey(Products, on_delete=models.CASCADE, null=True)
     def __str__(self):
         return self.name
 
@@ -43,9 +42,6 @@ class Products(models.Model):
     
 
 
-    
-    
-
 
 class Comment(models.Model):
     PRODUCT_STARS = [
@@ -61,3 +57,8 @@ class Comment(models.Model):
     text = models.TextField(null=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
     datetime_modified = models.DateTimeField(auto_now=True)
+
+
+class Comparison(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)

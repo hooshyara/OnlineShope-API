@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Products, Comment, Category
+from .models import Products, Comment, Category, Comparison
 
 @admin.register(Products)
 class ProductAdmin(admin.ModelAdmin):
@@ -14,3 +14,9 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name']
+
+
+
+@admin.register(Comparison)
+class ComparisonAdmin(admin.ModelAdmin):
+    list_display = ['user', 'product', ]

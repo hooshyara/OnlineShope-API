@@ -7,8 +7,9 @@ from django.contrib.auth.hashers import make_password, check_password
 from .models import User
 from products.models import Comment, Products
 from favorite.models import Favorite
+from favorite.serializers import FavoriteSerializers
 from cart.models import *
-from products.forms import AddProductForm, AddCategory
+from products.serializers import ProductSerializers
 from blog.models import Blogs
 from tickets.models import Tickets, TicketMessage
 from contact.models import Contact
@@ -20,6 +21,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from accounts.helper import get_user
+from .serializers import UserSerializers
+from contact.serializers import ContactSerializers
+from tickets.serializers import TicketSerializers
+from cart.serializers import OrderSerializers, OrderItemSerializers
+from blog.serializers import BlogSerializers
 
 
 class Login(APIView):
@@ -44,7 +50,7 @@ class SignUp(APIView):
         password = request.data.get('password')
         if mobile and password:
             user = User.objects.create_user(mobile=mobile, password=password)
-            otp = helper.get_random_otm()
+            otp = helper.get_random_otp()
             helper.send_otp(mobile, otp)
             user.otp = otp
             user.is_active = False
@@ -63,93 +69,65 @@ class LogOut(APIView):
         return Response({"message": "user is LogOut"}, status=status.HTTP_205_RESET_CONTENT)
 
 
-# def profile_view(request):
-#     user_list = User.objects.all()
-#     favorite = Favorite.objects.filter(user=request.user)
-#     my_comment = Comment.objects.filter(user=request.user)
-#     form = ProfileForm(instance=request.user)
-#     add_product = AddProductForm()
-#     add_blog = AddBlogForm()
-#     add_category = AddCategory()
-#     password_form = ChangePassword()
-#     cart = Cart.objects.filter(user=request.user)
-#     if request.user.is_superuser:
-#         orderItem = Order.objects.all()
-#         order = Order.objects.all()
-#         blog = Blogs.objects.all()
-#         product = Products.objects.all()
-#         ticket = Tickets.objects.all().order_by('-priority')
-#         contact = Contact.objects.all()
-#         if request.method == 'POST':
-#             print('ddd')
-#             code = request.POST['search']
-#             ticket = Tickets.objects.filter(code__contains=code)
-#             if ticket.exists():
-#                 return render(request, 'profile.html',
-#                               context={'favorite': favorite, 'form': form, 'pass_form': password_form, 'cart': cart,
-#                                        'comment': my_comment, 'products': product, 'add_form': add_product,
-#                                        'user': user_list, 'blog': blog, 'add_blog': add_blog, 'ticket': ticket,
-#                                        'contact': contact, 'add_category': add_category, 'order': order,
-#                                        'orderItem': orderItem})
-#             else:
-#                 return render(request, 'search_not_found.html')
-#         return render(request, 'profile.html',
-#                       context={'favorite': favorite, 'form': form, 'pass_form': password_form, 'cart': cart,
-#                                'comment': my_comment, 'products': product, 'add_form': add_product, 'user': user_list,
-#                                'blog': blog, 'add_blog': add_blog, 'ticket': ticket, 'contact': contact,
-#                                'add_category': add_category, 'orderItem': orderItem, 'order': order})
-#     else:
-#         ticket = Tickets.objects.filter(user=request.user)
-#         orderItem = get_list_or_404(OrderItem, user=request.user)
-#         order = get_list_or_404(Order, user=request.user)
 
-#         print(order)
-#         return render(request, 'profile.html',
-#                       context={'favorite': favorite, 'form': form, 'pass_form': password_form, 'cart': cart,
-#                                'comment': my_comment, 'ticket': ticket, 'orderItem': orderItem, 'order': order})
+class ProfileView(APIView):
+    def post(self, request):
+        token = request.data.get("token")
+        user = get_user(token)
+        favorite = Favorite.objects.filter(user=user)
+        favorite_serializers = FavoriteSerializers(favorite, many=True, context={"request":request})
 
+        cart = Cart.objects.filter(user=user)
+        if user.is_superuser:
+            orderItem = Order.objects.all()
+            orderItem_serializers = OrderItemSerializers(orderItem, many=True, context={"request":request})
+            order = Order.objects.all()
+            order_serializers = OrderSerializers(order, many=True, context={"request":request})
+            blog = Blogs.objects.all()
+            blog_serializers = BlogSerializers(blog, many=True, context={"request":request})
+            product = Products.objects.all()
+            product_serializers = ProductSerializers(product, many=True, context={"request":request})
+            ticket = Tickets.objects.all()
+            ticket_serializers = ProductSerializers(ticket, many=True, context={"request":request})
+            contact = Contact.objects.all()
+            contact_serializers = ContactSerializers(contact, many=True, context={"request":request})
+            return Response({"products":product_serializers.data, "orderItems":orderItem_serializers.data, 
+                             "orders":order_serializers.data, "blogs":blog_serializers.data, "tickets":ticket_serializers.data, 
+                             "contact":contact_serializers.data, "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
+        else:
+            print(user)
 
-# def updat_profile(requset):
-#     user = get_object_or_404(User, id=requset.user.id)
-#     form = ProfileForm(requset.POST, requset.FILES, instance=user)
-
-#     if form.is_valid():
-
-#         form.save()
-#         return redirect(reverse('accounts:profile_view'))
-#     else:
-#         print(form.errors)
-#     return redirect(reverse('accounts:profile_view'))
+            ticket = Tickets.objects.filter(user=user)
+            ticket_serializers = ProductSerializers(ticket, many=True, context={"request":request})
+            orderItem = OrderItem.objects.filter(user=user)
+            orderItem_serializers = OrderItemSerializers(orderItem, many=True, context={"request":request})
+            order = Order.objects.filter(user=user)
+            order_serializers = OrderSerializers(order, many=True, context={"request":request})
+            return Response({ "orderItems":orderItem_serializers.data, 
+                             "orders":order_serializers.data,  "tickets":ticket_serializers.data, 
+                              "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
+    def put(self, request):
+        token = request.data.get("token")
+        user = get_user(token)
+        serializers = UserSerializers(user, data=request.data)
+        if serializers.is_valid():
+            serializers.save()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# def change_password(request):
-#     user = get_object_or_404(User, id=request.user.id)
-#     form = ChangePassword(request.POST)
-#     if form.data['password1'] == form.data['password2']:
-#         user.password = make_password(form.data['password1'])
-#         user.save()
-#         return redirect(reverse('Home:HomeView'))
-
-#     return redirect(reverse('accounts:profile_view'))
 
 
-# def user_detail(request, pk):
-#     if request.user.is_superuser:
-#         user = get_object_or_404(User, id=pk)
-#         form = ProfileForm(instance=user)
-#         if request.method == "POST":
-#             form = ProfileForm(request.POST, request.FILES, instance=user)
+class ChangePaasword(APIView):
+    def post(self, request):
+            token = request.data.get("token")
+            user = get_user(token)
+            user.password = make_password(request.data.get('password'))
+            user.save()
+            return Response({"message":"your password was Changed"}, status=status.HTTP_200_OK)
 
-#             if form.is_valid():
-#                 print('dd')
-
-#                 form.save()
-#                 return redirect(reverse('accounts:profile_view'))
-#             else:
-#                 print(form.errors)
-
-#         return render(request, 'account_cart.html', context={'UPform': form, 'user': user})
-
+            
 
 class UserView(APIView):
     def delete(self, request, id):

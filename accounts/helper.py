@@ -18,7 +18,7 @@ def send_otp(mobile, otp):
     mobile = [mobile, ]
 
 
-def get_random_otm():
+def get_random_otp():
     return randint(1000, 9999)
 
 

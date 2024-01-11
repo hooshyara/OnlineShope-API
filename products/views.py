@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, reverse, get_object_or_404, get_list_or_404
-from .models import Products, Comment, Category
+from .models import Products, Comment, Category, Comparison
 from django.views import generic
 from .forms import CommentForm, AddProductForm, AddCategory
 from django.core.paginator import Paginator
 from .filters import ProductFilter
-from .serializers import ProductSerializers
+from .serializers import ProductSerializers, ComparisonSerializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -15,8 +15,12 @@ from accounts.helper import get_user
 
 class ProductListView(APIView):
     def get(self, request):
+        q = request.GET.get('q')
+        if q:
+            product = Products.objects.filter(Category__name=q)
+        else:
+            product = Products.objects.all()
         user = User()
-        product = Products.objects.all()
         serializers = ProductSerializers(product, many=True, context={'request':request})
         return Response(serializers.data, status=status.HTTP_200_OK)
     def post(self, request):
@@ -56,23 +60,34 @@ class ProductListView(APIView):
         
 
 
+class ComparisonView(APIView):
+    def get(self, request):
+        token = request.data.get("token")
+        user = get_user(token)
+        favorite = Comparison.objects.filter(user=user)
+        serializers = ComparisonSerializers(favorite, many=True, context={"request":request})
+        return Response(serializers.data, status=status.HTTP_200_OK)
 
-   
+    def post(self, request, id):
+        token = request.data.get("token")
+        user = get_user(token)
+        print(user)
+        product = Products.objects.get(id=id)
+        print(product)
+        favorite = Comparison.objects.create(
+            user = user,
+            product=product,
+        )
+        favorite.save()
+        return Response({"message":"ok"}, status=status.HTTP_200_OK)
+    
+    def delete(self, request, id):
+        token = request.data.get("token")
+        user = get_user(token)
+        comparison = Comparison.objects.get(id=id)
+        comparison.delete()
+        return Response({"message":"ok"}, status=status.HTTP_200_OK)
 
-
-
-def search_product(request):
-    if request.method == "POST":
-        title = request.POST['search']
-        product = Products.objects.filter(title__contains=title)
-        if product.exists():
-
-            return render(request, 'product_list.html', context={'page_obj': product})
-        else:
-            return render(request, 'search_not_found.html')
-
-
-
-
+        
 
 
