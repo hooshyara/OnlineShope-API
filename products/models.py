@@ -19,7 +19,8 @@ class Products(models.Model):
         ('4', 'چهار ستاره'),
         ('5', 'پنج ستاره '),
     ]
-    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    percent = models.PositiveIntegerField(default=30)
     title = models.CharField(max_length=100)
     content = models.TextField(null=True)
     cover = models.ImageField(upload_to='products/', null=True)

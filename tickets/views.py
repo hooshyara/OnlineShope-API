@@ -28,10 +28,6 @@ class TicketView(APIView):
         else:
             token = request.data.get("token")
             user = get_user(token)
-            # serializers = TicketSerializers(data=request.data)
-            # if serializers.is_valid():
-            #     ticket = serializers.save()
-            #     return Response(serializers.data, status=status.HTTP_200_OK)
             ticket = Tickets.objects.create(
                 user=user,
                 title=request.data.get('title'),

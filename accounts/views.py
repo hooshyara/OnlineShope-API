@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.hashers import make_password, check_password
 from .models import User
-from products.models import Comment, Products
+from products.models import Comment, Products, Category
 from favorite.models import Favorite
 from favorite.serializers import FavoriteSerializers
 from cart.models import *
@@ -26,6 +26,7 @@ from contact.serializers import ContactSerializers
 from tickets.serializers import TicketSerializers
 from cart.serializers import OrderSerializers, OrderItemSerializers
 from blog.serializers import BlogSerializers
+from products.serializers import CommentSerializers
 
 
 class Login(APIView):
@@ -76,7 +77,6 @@ class ProfileView(APIView):
         user = get_user(token)
         favorite = Favorite.objects.filter(user=user)
         favorite_serializers = FavoriteSerializers(favorite, many=True, context={"request":request})
-
         cart = Cart.objects.filter(user=user)
         if user.is_superuser:
             orderItem = Order.objects.all()
@@ -96,16 +96,36 @@ class ProfileView(APIView):
                              "contact":contact_serializers.data, "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
         else:
             print(user)
+            if user.is_shope:
+                category = Category.objects.get(name=request.data.get('category'))
+                product = Products.objects.create(
+                user=user,
+                title=request.data.get('title'),
+                content=request.data.get('content'),
+                cover = request.data.get('cover'),
+                star = request.data.get('star'),
+                price = request.data.get('price'),
+                inventory = request.data.get('inventory'),
+                active = request.data.get('active'),
+                discouont = request.data.get('discouont'),
+                category=category,
+                percent = request.data.get('percent')
 
-            ticket = Tickets.objects.filter(user=user)
-            ticket_serializers = ProductSerializers(ticket, many=True, context={"request":request})
-            orderItem = OrderItem.objects.filter(user=user)
-            orderItem_serializers = OrderItemSerializers(orderItem, many=True, context={"request":request})
-            order = Order.objects.filter(user=user)
-            order_serializers = OrderSerializers(order, many=True, context={"request":request})
-            return Response({ "orderItems":orderItem_serializers.data, 
-                             "orders":order_serializers.data,  "tickets":ticket_serializers.data, 
-                              "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
+            )
+                product.save()
+                comment = Comment.objects.filter(product__user=user)
+                comment_serializers = CommentSerializers(comment, many=True, contex={"request":request})
+                return Response(comment_serializers.data, {"message":"OK"}, status=status.HTTP_200_OK)
+            else:
+                ticket = Tickets.objects.filter(user=user)
+                ticket_serializers = ProductSerializers(ticket, many=True, context={"request":request})
+                orderItem = OrderItem.objects.filter(user=user)
+                orderItem_serializers = OrderItemSerializers(orderItem, many=True, context={"request":request})
+                order = Order.objects.filter(user=user)
+                order_serializers = OrderSerializers(order, many=True, context={"request":request})
+                return Response({ "orderItems":orderItem_serializers.data, 
+                                "orders":order_serializers.data,  "tickets":ticket_serializers.data, 
+                                "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
     def put(self, request):
         token = request.data.get("token")
         user = get_user(token)

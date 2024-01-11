@@ -21,6 +21,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=100)
     mobile = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
+    is_shope = models.BooleanField(null=True, default=False)
     otp = models.PositiveIntegerField(blank=True, null=True)
     otp_create_time = models.DateTimeField(auto_now=True)
     objects = UserManager()

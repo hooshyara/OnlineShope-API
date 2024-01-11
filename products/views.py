@@ -4,7 +4,7 @@ from django.views import generic
 from .forms import CommentForm, AddProductForm, AddCategory
 from django.core.paginator import Paginator
 from .filters import ProductFilter
-from .serializers import ProductSerializers, ComparisonSerializers
+from .serializers import ProductSerializers, ComparisonSerializers, CommentSerializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -26,14 +26,25 @@ class ProductListView(APIView):
     def post(self, request):
         token = request.data.get("token")
         user = get_user(token)
+        category = Category.objects.get(name=request.data.get('category'))
         print(f'user:{user}')
         if user.is_superuser:
-            serializer = ProductSerializers(data=request.data)
-            if serializer.is_valid():
-                product = serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            product = Products.objects.create(
+                user=user,
+                title=request.data.get('title'),
+                content=request.data.get('content'),
+                cover = request.data.get('cover'),
+                star = request.data.get('star'),
+                price = request.data.get('price'),
+                inventory = request.data.get('inventory'),
+                active = request.data.get('active'),
+                discouont = request.data.get('discouont'),
+                category=category
+
+            )
+            product.save()
+        return Response({"message":"OK"}, status=status.HTTP_200_OK)
+
     def put(self, request, id):
         token = request.data.get("token")        
         user = get_user(token)        
@@ -90,4 +101,33 @@ class ComparisonView(APIView):
 
         
 
+
+
+class CommentsView(APIView):
+    def get(self, request, id):
+        blog = Products.objects.get(id=id)
+        comment = Comment.objects.filter(blog=blog)
+        serializer = CommentSerializers(comment, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, id):
+        token = request.data.get("token")
+        user = get_user(token)
+        blog = Products.objects.get(id=id)
+        comment = Comment.objects.create(
+            product=blog,
+            user=user,
+            star=request.data.get('star'),
+            text=request.data.get('text')
+        )
+        return Response({"message": "ok"}, status=status.HTTP_200_OK)
+
+    def delete(self, request, id):
+        token = request.data.get("token")
+        user = get_user(token)
+        if user.is_superuser:
+            comment = Comment.objects.get(id=id)
+
+            comment.delete()
+            return Response({"message": " comment is delete"}, status=status.HTTP_400_BAD_REQUEST)
 
