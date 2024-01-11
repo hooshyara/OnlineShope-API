@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     # "debug_toolbar",
     'jalali_date',
     'accounts',
-    'Home',
+
     'blog',
     'products',
     'django_summernote',
