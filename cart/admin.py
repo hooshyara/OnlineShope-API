@@ -10,7 +10,7 @@ class CartAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['user',]
+    list_display = ['user','id', "status"]
 
 
 @admin.register(OrderItem)

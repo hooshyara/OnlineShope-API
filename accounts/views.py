@@ -56,7 +56,18 @@ class SignUp(APIView):
             user.otp = otp
             user.is_active = False
             user.save()
-            return Response({"message": "success"}, status=status.HTTP_200_OK)
+            if user.referral_code:
+                return Response({"message": "referral_code is Exist"}, status=status.HTTP_200_OK)
+
+            else:
+                referral_code =  request.data.get("referral_code")
+                owner_user = User.objects.get(mobile=referral_code)
+                user.referral_code = referral_code
+                user.save()
+                print(user.referral_code)
+                print(owner_user)
+                return Response({"message": "success"}, status=status.HTTP_200_OK)
+
 
 
 class LogOut(APIView):
@@ -75,6 +86,7 @@ class ProfileView(APIView):
     def post(self, request):
         token = request.data.get("token")
         user = get_user(token)
+        print(user)
         favorite = Favorite.objects.filter(user=user)
         favorite_serializers = FavoriteSerializers(favorite, many=True, context={"request":request})
         cart = Cart.objects.filter(user=user)
@@ -95,7 +107,6 @@ class ProfileView(APIView):
                              "orders":order_serializers.data, "blogs":blog_serializers.data, "tickets":ticket_serializers.data, 
                              "contact":contact_serializers.data, "favorite":favorite_serializers.data}, status=status.HTTP_200_OK)
         else:
-            print(user)
             if user.is_shope:
                 category = Category.objects.get(name=request.data.get('category'))
                 product = Products.objects.create(
@@ -110,12 +121,11 @@ class ProfileView(APIView):
                 discouont = request.data.get('discouont'),
                 category=category,
                 percent = request.data.get('percent')
-
             )
                 product.save()
                 comment = Comment.objects.filter(product__user=user)
-                comment_serializers = CommentSerializers(comment, many=True, contex={"request":request})
-                return Response(comment_serializers.data, {"message":"OK"}, status=status.HTTP_200_OK)
+                comment_serializers = CommentSerializers(comment, many=True, context={"request":request})
+                return Response(comment_serializers.data,  status=status.HTTP_201_CREATED)
             else:
                 ticket = Tickets.objects.filter(user=user)
                 ticket_serializers = ProductSerializers(ticket, many=True, context={"request":request})

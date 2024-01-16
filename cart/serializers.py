@@ -17,7 +17,7 @@ class OrderSerializers(serializers.ModelSerializer):
     user =UserSerializers(read_only=True)
     class Meta:
         model = Order
-        fields = ['user', 'first_name', 'last_name', 'city', 'address', 'post_id', 'description', ]
+        fields = ['user', 'first_name', 'last_name', 'city', 'address', 'post_id', 'description', "status"]
         
 
 class OrderItemSerializers(serializers.ModelSerializer):

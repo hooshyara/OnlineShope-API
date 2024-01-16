@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from accounts.models import User
 from accounts.helper import get_user
-from .serializers import CartSerializers
+from .serializers import CartSerializers, OrderSerializers
 from rest_framework.response import Response
 
 
@@ -86,3 +86,19 @@ class CheckOut(APIView):
             product_cart = Cart.objects.get(user=user, products=product)
             product_cart.delete()
         return Response({"message":"ok"}, status=status.HTTP_200_OK)
+    
+    def put(self, request, id):
+        token = request.data.get("token")
+        user = get_user(token)
+        print(user.is_superuser)
+        if user.is_superuser or user.is_shope:
+            order = Order.objects.get(id=id)
+            serializer = OrderSerializers(order,data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+            

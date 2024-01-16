@@ -26,8 +26,14 @@ class Cart(models.Model):
 
     
 class Order(models.Model):
+    STATUS = [
+        ('1', '  در انتظار ارسال '),       
+        ('2', '  ارسال شده'),
+        ('3', ' ارسال نشده'), 
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=100, choices=STATUS, default='1')
     first_name = models.CharField(max_length=100)
     last_name= models.CharField(max_length=100)
     city = models.CharField(max_length=100)

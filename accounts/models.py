@@ -1,6 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .usermanager import UserManager
+import random
+import string
+
+def generate_unic_code():
+    cod_length = 6
+    characters = string.ascii_letters + string.digits
+
+    while(True):
+        code = ''.join(random.choice(characters) for _ in range(cod_length)) 
+        
+        if not User.objects.filter(personal_id=code).exists():
+            return code
 
 
 class User(AbstractUser):
@@ -10,6 +22,7 @@ class User(AbstractUser):
     )
     username = None
     profile_picture = models.ImageField(upload_to='accounts/', null=True)
+    referral_code = models.CharField(max_length=6, null=True, blank=True)
     gender = models.CharField(max_length=100, null=True, choices=GENDER)
     province = models.CharField(max_length=100, null=True)
     city = models.CharField(max_length=100, null=True)
