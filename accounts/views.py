@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.hashers import make_password, check_password
-from .models import User
+from .models import User, Seller
 from products.models import Comment, Products, Category
 from favorite.models import Favorite
 from favorite.serializers import FavoriteSerializers
@@ -55,7 +55,16 @@ class SignUp(APIView):
             helper.send_otp(mobile, otp)
             user.otp = otp
             user.is_active = False
+            
             user.save()
+            if user.is_shope == False:
+                seller = Seller.objects.create(
+                    user= user,
+                    office_code = request.data.get('office_code'),
+                    address = request.data.get('address')
+                )
+                seller.save
+                return Response({"message": "OK"},)
             if user.referral_code:
                 return Response({"message": "referral_code is Exist"}, status=status.HTTP_200_OK)
 
@@ -67,6 +76,10 @@ class SignUp(APIView):
                 print(user.referral_code)
                 print(owner_user)
                 return Response({"message": "success"}, status=status.HTTP_200_OK)
+            
+            
+            
+            
 
 
 

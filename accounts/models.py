@@ -41,3 +41,11 @@ class User(AbstractUser):
     USERNAME_FIELD = 'mobile'
     REQUIRED_FIELDS = []
     backend = 'accounts.backend.MobileBackend'
+
+
+
+class Seller(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    office_code = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, null=True)
+

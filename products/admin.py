@@ -20,3 +20,5 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Comparison)
 class ComparisonAdmin(admin.ModelAdmin):
     list_display = ['user', 'product', ]
+
+

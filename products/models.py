@@ -6,6 +6,7 @@ from accounts.models import User
 
 
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
@@ -63,3 +64,8 @@ class Comment(models.Model):
 class Comparison(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
+
+
+
+
+    
