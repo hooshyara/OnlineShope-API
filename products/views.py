@@ -28,7 +28,7 @@ class ProductListView(APIView):
         user = get_user(token)
         category = Category.objects.get(name=request.data.get('category'))
         print(f'user:{user}')
-        if user.is_superuser:
+        if user.is_superuser or user.is_shope:
             product = Products.objects.create(
                 user=user,
                 title=request.data.get('title'),
@@ -49,7 +49,7 @@ class ProductListView(APIView):
         token = request.data.get("token")        
         user = get_user(token)        
         product = Products.objects.get(id=id)
-        if user.is_superuser:
+        if user.is_superuser or user.is_shope:
             serializer = ProductSerializers(product,data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -63,7 +63,7 @@ class ProductListView(APIView):
         token = request.data.get("token")
         user = get_user(token)
         product = Products.objects.get(id=id)
-        if user.is_superuser:
+        if user.is_superuser or user.is_shope:
             product.delete()
             return Response({"message":"product is delete"}, status=status.HTTP_200_OK)
 

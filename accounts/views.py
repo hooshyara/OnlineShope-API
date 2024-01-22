@@ -50,14 +50,14 @@ class SignUp(APIView):
         mobile = request.data.get('mobile')
         password = request.data.get('password')
         if mobile and password:
-            user = User.objects.create_user(mobile=mobile, password=password)
+            user = User.objects.create_user(mobile=mobile, password=password, is_shope=request.data.get('is_shope'))
             otp = helper.get_random_otp()
             helper.send_otp(mobile, otp)
             user.otp = otp
-            user.is_active = False
+            # user.is_shope = True
             
             user.save()
-            if user.is_shope == False:
+            if user.is_shope:
                 seller = Seller.objects.create(
                     user= user,
                     office_code = request.data.get('office_code'),

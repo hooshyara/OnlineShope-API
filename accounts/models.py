@@ -48,4 +48,5 @@ class Seller(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     office_code = models.CharField(max_length=100)
     address = models.CharField(max_length=100, null=True)
+    Cooperation_percentage = models.PositiveBigIntegerField(null=True)
 
